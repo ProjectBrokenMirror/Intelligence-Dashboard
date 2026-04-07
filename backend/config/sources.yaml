@@ -1,0 +1,19 @@
+# Add or edit RSS feeds without changing code. Restart API or wait for next ingest cycle.
+sources:
+  - id: vallarta-daily
+    name: Vallarta Daily News
+    kind: rss
+    feed_url: https://www.vallartadaily.com/feed/
+    enabled: true
+
+  - id: tribuna-de-la-bahia
+    name: Tribuna de la Bahía
+    kind: rss
+    feed_url: https://tribunadelabahia.com.mx/feed/
+    enabled: true
+
+  - id: example-stub-scraper
+    name: Example stub scraper (no network)
+    kind: scraper
+    scraper_module: stub
+    enabled: false
