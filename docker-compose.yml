@@ -3,7 +3,8 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: pv
-      POSTGRES_PASSWORD: pv
+      # Must match the password baked into Postgres on first run (see .env.example).
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pv}
       POSTGRES_DB: pv_intel
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -20,7 +21,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: postgresql+psycopg://pv:pv@postgres:5432/pv_intel
+      DATABASE_URL: postgresql+psycopg://pv:${POSTGRES_PASSWORD:-pv}@postgres:5432/pv_intel
       SOURCES_CONFIG_PATH: /app/config/sources.yaml
       # Comma-separated browser origins allowed to call the API (not the API URL).
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://frontend:80}
