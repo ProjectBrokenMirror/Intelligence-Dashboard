@@ -133,7 +133,9 @@ export default function App() {
         <div className="grid">
           <section className="panel weather-panel">
             <h2 className="panel-title">Weather · Puerto Vallarta</h2>
-            {weather ? (
+            {loading && !weather ? (
+              <p className="muted">Loading…</p>
+            ) : weather ? (
               <div className="weather-body">
                 <div className="weather-temp">{Math.round(weather.current.temperature_c)}°C</div>
                 <div className="weather-meta">

@@ -18,8 +18,26 @@ const base = (): string => {
   return "";
 };
 
-async function getJson<T>(path: string): Promise<T> {
-  const r = await fetch(`${base()}${path}`);
+const DEFAULT_TIMEOUT_MS = 30_000;
+const INGEST_TIMEOUT_MS = 180_000;
+
+function signalForTimeout(ms: number): AbortSignal {
+  if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+    return AbortSignal.timeout(ms);
+  }
+  const c = new AbortController();
+  setTimeout(() => c.abort(), ms);
+  return c.signal;
+}
+
+async function getJson<T>(path: string, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<T> {
+  const b = base();
+  if (!b && !import.meta.env.DEV) {
+    throw new Error(
+      "API base URL is not configured (set VITE_API_URL when building the frontend)."
+    );
+  }
+  const r = await fetch(`${b}${path}`, { signal: signalForTimeout(timeoutMs) });
   if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
   return r.json() as Promise<T>;
 }
@@ -88,7 +106,16 @@ export function fetchStatus() {
 }
 
 export async function runIngest(): Promise<IngestResult> {
-  const r = await fetch(`${base()}/ingest/run`, { method: "POST" });
+  const b = base();
+  if (!b && !import.meta.env.DEV) {
+    throw new Error(
+      "API base URL is not configured (set VITE_API_URL when building the frontend)."
+    );
+  }
+  const r = await fetch(`${b}/ingest/run`, {
+    method: "POST",
+    signal: signalForTimeout(INGEST_TIMEOUT_MS),
+  });
   if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
   return r.json() as Promise<IngestResult>;
 }
