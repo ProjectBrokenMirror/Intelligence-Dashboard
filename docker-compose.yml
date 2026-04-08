@@ -22,7 +22,8 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://pv:pv@postgres:5432/pv_intel
       SOURCES_CONFIG_PATH: /app/config/sources.yaml
-      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173,http://frontend:80
+      # Comma-separated browser origins allowed to call the API (not the API URL).
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://frontend:80}
     volumes:
       - ./backend/config:/app/config:ro
     ports:
@@ -36,7 +37,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://localhost:8000
+        # Exactly one public API base URL (no commas). Override in .env on the VPS.
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     ports:
       - "5173:80"
     depends_on:

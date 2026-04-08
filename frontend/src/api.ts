@@ -1,6 +1,19 @@
+/** Single origin only. If someone pastes a CORS-style list by mistake, prefer https. */
+function normalizeApiBase(raw: string): string {
+  const trimmed = raw.trim().replace(/\/$/, "");
+  if (!trimmed.includes(",")) return trimmed;
+  const parts = trimmed
+    .split(",")
+    .map((p) => p.trim().replace(/\/$/, ""))
+    .filter(Boolean);
+  const https = parts.find((p) => p.startsWith("https://"));
+  if (https) return https;
+  return parts[parts.length - 1] ?? trimmed;
+}
+
 const base = (): string => {
   const env = import.meta.env.VITE_API_URL;
-  if (env && env.length > 0) return env.replace(/\/$/, "");
+  if (env && env.length > 0) return normalizeApiBase(env);
   if (import.meta.env.DEV) return "/api";
   return "";
 };
