@@ -20,6 +20,7 @@ const base = (): string => {
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const INGEST_TIMEOUT_MS = 180_000;
+const ENRICH_TIMEOUT_MS = 300_000;
 
 function signalForTimeout(ms: number): AbortSignal {
   if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
@@ -59,6 +60,15 @@ export type Item = {
   summary: string | null;
   published_at: string | null;
   fetched_at: string;
+  category: string;
+  severity: string;
+  language: string | null;
+  summary_en: string | null;
+  summary_es: string | null;
+  neighborhood: string | null;
+  meta: Record<string, unknown>;
+  lat: number | null;
+  lng: number | null;
 };
 
 export type Weather = {
@@ -85,13 +95,43 @@ export type IngestResult = {
   errors: string[];
 };
 
+export type BreakingItem = {
+  id: number;
+  title: string;
+  url: string;
+  severity: string;
+  category: string;
+  published_at: string | null;
+};
+
+export type AlertsResponse = {
+  high_alert: boolean;
+  breaking: BreakingItem[];
+};
+
+export type EnrichmentResult = {
+  processed: number;
+  llm_configured: boolean;
+};
+
 export function fetchSources() {
   return getJson<Source[]>("/sources");
 }
 
-export function fetchItems(params: { sourceId?: string; limit?: number }) {
+export function fetchItems(params: {
+  sourceId?: string;
+  category?: string;
+  severity?: string;
+  neighborhood?: string;
+  placedOnly?: boolean;
+  limit?: number;
+}) {
   const q = new URLSearchParams();
   if (params.sourceId) q.set("source_id", params.sourceId);
+  if (params.category) q.set("category", params.category);
+  if (params.severity) q.set("severity", params.severity);
+  if (params.neighborhood) q.set("neighborhood", params.neighborhood);
+  if (params.placedOnly) q.set("placed_only", "true");
   if (params.limit) q.set("limit", String(params.limit));
   const qs = q.toString();
   return getJson<Item[]>(`/items${qs ? `?${qs}` : ""}`);
@@ -103,6 +143,10 @@ export function fetchWeather() {
 
 export function fetchStatus() {
   return getJson<Status>("/status");
+}
+
+export function fetchAlerts(hours = 48) {
+  return getJson<AlertsResponse>(`/alerts?hours=${hours}`);
 }
 
 export async function runIngest(): Promise<IngestResult> {
@@ -118,6 +162,21 @@ export async function runIngest(): Promise<IngestResult> {
   });
   if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
   return r.json() as Promise<IngestResult>;
+}
+
+export async function runEnrichment(): Promise<EnrichmentResult> {
+  const b = base();
+  if (!b && !import.meta.env.DEV) {
+    throw new Error(
+      "API base URL is not configured (set VITE_API_URL when building the frontend)."
+    );
+  }
+  const r = await fetch(`${b}/enrichment/run`, {
+    method: "POST",
+    signal: signalForTimeout(ENRICH_TIMEOUT_MS),
+  });
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return r.json() as Promise<EnrichmentResult>;
 }
 
 /** Short WMO-ish label for Open-Meteo weather codes (simplified). */

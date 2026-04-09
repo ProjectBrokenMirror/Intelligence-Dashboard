@@ -4,7 +4,9 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.ingest.classify import classify_headline, detect_language_hint
 from app.ingest.config_loader import load_sources_config
+from app.ingest.geocode import match_neighborhood
 from app.ingest.rss import fetch_rss_items
 from app.models import Item, Source
 from app.schemas import IngestResultOut
@@ -27,6 +29,16 @@ def _upsert_source(db: Session, cfg) -> Source:
     return row
 
 
+def _apply_monitor_fields(item: Item, title: str, summary: str | None) -> None:
+    cat, sev = classify_headline(title)
+    item.category = cat
+    item.severity = sev
+    item.language = detect_language_hint(title, summary)
+    nh, geom = match_neighborhood(title, summary)
+    item.neighborhood = nh
+    item.geom = geom
+
+
 def _upsert_item(db: Session, source_id: str, title: str, url: str, summary: str | None, published_at) -> bool:
     """Returns True if a new row was inserted."""
     existing = db.scalar(select(Item).where(Item.url == url))
@@ -36,17 +48,19 @@ def _upsert_item(db: Session, source_id: str, title: str, url: str, summary: str
         existing.summary = summary
         existing.published_at = published_at
         existing.fetched_at = now
+        _apply_monitor_fields(existing, title, summary)
         return False
-    db.add(
-        Item(
-            source_id=source_id,
-            title=title,
-            url=url,
-            summary=summary,
-            published_at=published_at,
-            fetched_at=now,
-        )
+    row = Item(
+        source_id=source_id,
+        title=title,
+        url=url,
+        summary=summary,
+        published_at=published_at,
+        fetched_at=now,
+        extras={},
     )
+    _apply_monitor_fields(row, title, summary)
+    db.add(row)
     return True
 
 

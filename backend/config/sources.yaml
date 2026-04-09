@@ -1,4 +1,4 @@
-# Add or edit RSS feeds without changing code. Restart API or wait for next ingest cycle.
+# RSS-first sources for Banderas Bay. Disable any feed that 404s or blocks bots.
 sources:
   - id: vallarta-daily
     name: Vallarta Daily News
@@ -11,6 +11,24 @@ sources:
     kind: rss
     feed_url: https://tribunadelabahia.com.mx/feed/
     enabled: true
+
+  - id: puerto-vallarta-daily-news
+    name: Puerto Vallarta Daily News (PVDN)
+    kind: rss
+    feed_url: https://www.puertovallartadailynews.com/feed/
+    enabled: true
+
+  - id: vallarta-lifestyles
+    name: Vallarta Lifestyles
+    kind: rss
+    feed_url: https://www.vallartalifestyles.com/feed/
+    enabled: false
+
+  - id: tribuna-english
+    name: Tribuna (English section RSS if available)
+    kind: rss
+    feed_url: https://tribunadelabahia.com.mx/en/feed/
+    enabled: false
 
   - id: example-stub-scraper
     name: Example stub scraper (no network)

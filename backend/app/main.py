@@ -7,8 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import SessionLocal
+from app.enrichment.runner import run_enrichment_batch
 from app.ingest.runner import run_full_ingest
-from app.routers import ingest, items, sources, status, weather
+from app.routers import alerts, enrichment_route, ingest, items, sources, status, weather
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,6 +33,16 @@ def _scheduled_ingest() -> None:
         db.close()
 
 
+def _scheduled_enrichment() -> None:
+    db = SessionLocal()
+    try:
+        n = run_enrichment_batch(db, settings.enrichment_batch_size)
+        if n:
+            logger.info("Enrichment completed for %s items", n)
+    finally:
+        db.close()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     _scheduled_ingest()
@@ -40,6 +51,13 @@ async def lifespan(app: FastAPI):
         "interval",
         minutes=settings.ingest_interval_minutes,
         id="rss_ingest",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        _scheduled_enrichment,
+        "interval",
+        minutes=settings.enrichment_interval_minutes,
+        id="llm_enrichment",
         replace_existing=True,
     )
     scheduler.start()
@@ -63,6 +81,8 @@ app.include_router(items.router)
 app.include_router(weather.router)
 app.include_router(status.router)
 app.include_router(ingest.router)
+app.include_router(alerts.router)
+app.include_router(enrichment_route.router)
 
 
 @app.get("/health")

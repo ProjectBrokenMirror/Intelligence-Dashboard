@@ -19,3 +19,5 @@
 5. **Operations** — Honor `robots.txt`, use modest concurrency, and log failures. Scrapers break when HTML changes; treat alerts on empty results or ingest errors as a signal to update selectors.
 
 6. **Trigger ingest** — `POST /ingest/run` or wait for the scheduled job. Check `GET /status` for counts and last fetch time.
+
+7. **Map placement** — Headlines that match a substring in [`config/neighborhoods.yaml`](../config/neighborhoods.yaml) get a PostGIS point for the map. Add keys there for new areas.

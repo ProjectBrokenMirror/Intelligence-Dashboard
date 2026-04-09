@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgis/postgis:16-3.4
     environment:
       POSTGRES_USER: pv
       # Must match the password baked into Postgres on first run (see .env.example).
@@ -25,6 +25,10 @@ services:
       SOURCES_CONFIG_PATH: /app/config/sources.yaml
       # Comma-separated browser origins allowed to call the API (not the API URL).
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://frontend:80}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      ENRICHMENT_INTERVAL_MINUTES: ${ENRICHMENT_INTERVAL_MINUTES:-60}
+      ENRICHMENT_BATCH_SIZE: ${ENRICHMENT_BATCH_SIZE:-5}
     volumes:
       - ./backend/config:/app/config:ro
     ports:

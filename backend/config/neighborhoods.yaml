@@ -1,0 +1,43 @@
+# PV / Banderas Bay reference points for keyword matching in titles (deterministic geocode).
+# Keys are matched as case-insensitive substrings in title + summary.
+neighborhoods:
+  - keys: ["zona romántica", "romantic zone", "ojos de agua"]
+    slug: romantic-zone
+    lat: 20.602
+    lng: -105.234
+  - keys: ["marina vallarta", "marina pv", " la marina "]
+    slug: marina
+    lat: 20.657
+    lng: -105.242
+  - keys: ["centro", "downtown pv", "el centro"]
+    slug: centro
+    lat: 20.676
+    lng: -105.233
+  - keys: ["versalles", "versailles"]
+    slug: versalles
+    lat: 20.642
+    lng: -105.232
+  - keys: ["conchas chinas", "garza blanca"]
+    slug: conchas-chinas
+    lat: 20.588
+    lng: -105.228
+  - keys: ["nuevo vallarta", "fluvial"]
+    slug: nuevo-vallarta
+    lat: 20.701
+    lng: -105.291
+  - keys: ["bucerías", "bucerias"]
+    slug: bucerias
+    lat: 20.755
+    lng: -105.333
+  - keys: ["sayulita"]
+    slug: sayulita
+    lat: 20.869
+    lng: -105.440
+  - keys: ["mismaloya", "los muertos", "playa los muertos"]
+    slug: mismaloya-los-muertos
+    lat: 20.593
+    lng: -105.234
+  - keys: ["puente ameca", "ameca bridge", "carretera 200", "highway 200"]
+    slug: ameca-bridge
+    lat: 20.72
+    lng: -105.25
